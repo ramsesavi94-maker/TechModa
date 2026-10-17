@@ -1,11 +1,27 @@
 Transform: AWS::Serverless-2016-10-31
 Description: TechModa Serverless Capstone - Fashion E-commerce Product Catalog API
 
+Parameters:
+  EnableAI:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+    Description: >-
+      Activa el asistente de estilo y las fichas con Claude en Amazon Bedrock.
+      Bedrock se cobra por uso y no tiene capa gratuita; con 'false' el frontend
+      usa su asistente local sin costo.
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-opus-5-5
+    Description: >-
+      Modelo de Claude en Bedrock (prefijo anthropic.). Para reducir costo usa
+      anthropic.claude-haiku-5-5.
+
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 1024
-    Runtime: nodejs18.x
+    MemorySize: 256
+    Runtime: nodejs22.x
     Tracing: Active
     Environment:
       Variables:
@@ -67,6 +83,38 @@ Resources:
                 httpMethod: POST
                 type: aws_proxy
                 uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteItemFunction.Arn}/invocations
+              responses: {}
+          /products/{id}/translate:
+            post:
+              summary: Translate a product with Amazon Translate
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TranslateItemFunction.Arn}/invocations
+              responses: {}
+          /products/{id}/speech:
+            post:
+              summary: Read a product description aloud with Amazon Polly
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SpeakItemFunction.Arn}/invocations
+              responses: {}
+          /products/{id}/insights:
+            post:
+              summary: AI product sheet with Claude on Amazon Bedrock
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AiAssistantFunction.Arn}/invocations
+              responses: {}
+          /assistant:
+            post:
+              summary: Style assistant with Claude on Amazon Bedrock
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AiAssistantFunction.Arn}/invocations
               responses: {}
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
@@ -184,6 +232,87 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ProductsTable
+
+  TranslateItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-TranslateItem
+      Description: Translate product name and description with Amazon Translate
+      CodeUri: functions/translate-item
+      Handler: index.handler
+      Events:
+        ApiPOSTTranslate:
+          Type: Api
+          Properties:
+            Path: /products/{id}/translate
+            Method: POST
+            RestApiId: !Ref ProductsApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductsTable
+        - Statement:
+            - Effect: Allow
+              Action: translate:TranslateText
+              Resource: '*'
+
+  SpeakItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-SpeakItem
+      Description: Read product descriptions aloud with Amazon Polly
+      CodeUri: functions/speak-item
+      Handler: index.handler
+      Events:
+        ApiPOSTSpeech:
+          Type: Api
+          Properties:
+            Path: /products/{id}/speech
+            Method: POST
+            RestApiId: !Ref ProductsApi
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductsTable
+        - Statement:
+            - Effect: Allow
+              Action: polly:SynthesizeSpeech
+              Resource: '*'
+
+  AiAssistantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-AiAssistant
+      Description: Style assistant and product insights with Claude on Amazon Bedrock
+      CodeUri: functions/ai-assistant
+      Handler: index.handler
+      Timeout: 60
+      Environment:
+        Variables:
+          AI_ENABLED: !Ref EnableAI
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Events:
+        ApiPOSTAssistant:
+          Type: Api
+          Properties:
+            Path: /assistant
+            Method: POST
+            RestApiId: !Ref ProductsApi
+        ApiPOSTInsights:
+          Type: Api
+          Properties:
+            Path: /products/{id}/insights
+            Method: POST
+            RestApiId: !Ref ProductsApi
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProductsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource:
+                - !Sub arn:${AWS::Partition}:bedrock:*::foundation-model/*
+                - !Sub arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/*
 
   # S3 Bucket for Static Website Hosting
   FrontendBucket:

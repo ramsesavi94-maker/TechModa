@@ -1,0 +1,11 @@
+{
+  "name": "translate-item",
+  "version": "1.0.0",
+  "description": "Translate a product's name and description with Amazon Translate",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-translate": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}

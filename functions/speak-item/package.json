@@ -1,0 +1,11 @@
+{
+  "name": "speak-item",
+  "version": "1.0.0",
+  "description": "Read a product description aloud with Amazon Polly",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-polly": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}

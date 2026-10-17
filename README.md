@@ -6,6 +6,21 @@ API de Catálogo de Productos de E-commerce de Moda construida con Tecnologías 
 
 ---
 
+## ✨ Funciones de la tienda
+
+| Función | En AWS | En la demo (sin costo) |
+|---|---|---|
+| Catálogo, filtros, búsqueda y carrito | API Gateway + Lambda + DynamoDB | Datos de ejemplo en `localStorage` |
+| Panel admin (CRUD de productos) | `POST/PUT/DELETE /products` | Igual, guardado en el navegador |
+| Idiomas: español, inglés, chino y japonés | **Amazon Translate** traduce cada producto (`POST /products/{id}/translate`) y lo guarda en DynamoDB | Traducciones precargadas |
+| Escuchar la descripción | **Amazon Polly**, voces neurales (`POST /products/{id}/speech`) | Voz del navegador (Web Speech API) |
+| Asistente de estilo "Vale" | **Claude en Amazon Bedrock** (`POST /assistant`) | Motor local por palabras clave |
+| Ficha de estilo por producto | **Claude en Amazon Bedrock** (`POST /products/{id}/insights`) | Guía local por categoría |
+
+**Costos:** Translate y Polly tienen capa gratuita y cada traducción se hace una sola vez. Bedrock se cobra por uso, así que viene **apagado**: actívalo al desplegar con `--parameter-overrides EnableAI=true`. Por defecto usa `anthropic.claude-opus-5-5`; para gastar menos usa `BedrockModelId=anthropic.claude-haiku-5-5`. Mientras Bedrock esté apagado, el frontend usa el asistente y las fichas locales.
+
+---
+
 ## 🚀 NUEVO: Despliegue en 10 Minutos
 
 **¿Primera vez aquí?** Las funciones Lambda ya están implementadas y listas para desplegar.

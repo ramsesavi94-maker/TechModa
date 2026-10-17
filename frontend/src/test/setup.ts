@@ -1,17 +1,16 @@
 import '@testing-library/jest-dom';
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
-// Cleanup after each test
 afterEach(() => {
   cleanup();
+  localStorage.clear();
 });
 
-// Mock window.__ENV for tests
-globalThis.window = globalThis.window || ({} as any);
+// API configurada: en las pruebas `api` usa el cliente HTTP, no el modo demo.
 window.__ENV = {
-  VITE_API_URL: 'https://test-api.example.com/Prod'
+  VITE_API_URL: 'https://test-api.example.com/Prod',
 };
 
-// Mock fetch globally
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
+window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;

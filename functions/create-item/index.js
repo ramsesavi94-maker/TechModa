@@ -20,10 +20,27 @@ exports.handler = async (event) => {
 
     try {
         // Parse request body
-        const body = JSON.parse(event.body);
+        let body;
+        try {
+            body = JSON.parse(event.body || '{}');
+        } catch {
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    error: 'JSON inválido',
+                    message: 'El cuerpo de la solicitud no es JSON válido'
+                })
+            };
+        }
 
         // Validate required fields
-        if (!body.name || !body.price) {
+        const price = parseFloat(body.price);
+        const stock = body.stock === undefined ? 0 : parseInt(body.stock, 10);
+        if (!body.name || Number.isNaN(price) || price < 0 || Number.isNaN(stock) || stock < 0) {
             return {
                 statusCode: 400,
                 headers: {
@@ -32,7 +49,7 @@ exports.handler = async (event) => {
                 },
                 body: JSON.stringify({
                     error: 'Campos requeridos faltantes',
-                    message: 'Los campos "name" y "price" son obligatorios'
+                    message: 'Los campos "name" y "price" son obligatorios; "price" y "stock" no pueden ser negativos'
                 })
             };
         }
@@ -43,8 +60,9 @@ exports.handler = async (event) => {
             productId: randomUUID(),
             name: body.name,
             description: body.description || '',
-            price: parseFloat(body.price),
+            price,
             category: body.category || '',
+            stock,
             imageUrl: body.imageUrl || '',
             createdAt: now,
             updatedAt: now

@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+  ::selection {
+    @apply bg-lime text-ink;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-ink;
+  }
+}
+
+@layer components {
+  .display {
+    @apply font-display uppercase leading-[0.9] tracking-[0.01em];
+  }
+  .btn-primary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full bg-ink px-7 text-[13px] font-semibold uppercase tracking-[0.06em] text-paper transition duration-200 hover:-translate-y-0.5 hover:bg-ink/90 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+  .btn-lime {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full bg-lime px-7 text-[13px] font-semibold uppercase tracking-[0.06em] text-ink transition duration-200 hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-secondary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full border-2 border-ink px-7 text-[13px] font-semibold uppercase tracking-[0.06em] text-ink transition-colors duration-200 hover:bg-ink hover:text-paper;
+  }
+  .link-underline {
+    @apply relative pb-0.5 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out-quint hover:after:scale-x-100;
+  }
+  .icon-btn {
+    @apply flex h-9 w-9 items-center justify-center rounded-full bg-paper text-ink shadow-sm transition duration-200 hover:bg-ink hover:text-paper;
+  }
+  .badge {
+    @apply rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em];
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em];
+  }
+  .input {
+    @apply w-full rounded-xl border border-field bg-white px-3.5 py-2.5 text-[15px] text-ink outline-none transition-colors placeholder:text-muted focus:border-ink focus:ring-2 focus:ring-lime;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
