@@ -103,7 +103,7 @@ export function ProductForm({ open, product, onClose, onSave }: ProductFormProps
 
         <div className="hidden sm:block">
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">Vista previa</p>
-          <ProductImage src={form.imageUrl} alt="Vista previa" className="aspect-[4/5] w-full" />
+          <ProductImage src={form.imageUrl} alt="Vista previa" className="aspect-[4/5] w-full rounded-xl" />
         </div>
 
         <div className="flex gap-3 sm:col-span-2">

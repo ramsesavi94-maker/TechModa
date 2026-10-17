@@ -4,7 +4,13 @@ import type { Product } from './types';
 const img = (id: string) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&h=1000&q=75`;
 
-export const HERO_IMAGE = img('1490481651871-ab68de25d43d');
+export const HERO_IMAGE = `https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2000&h=1400&q=75`;
+
+export const CATEGORY_IMAGES: Record<string, string> = {
+  Ropa: img('1591047139829-d91aecb6caea'),
+  Zapatos: img('1595950653106-6c9ebd614d3a'),
+  Accesorios: img('1584917865442-de89df76afd3'),
+};
 
 const DAY = 24 * 60 * 60 * 1000;
 const at = (daysAgo: number) => new Date(Date.UTC(2026, 9, 15) - daysAgo * DAY).toISOString();
@@ -21,7 +27,7 @@ const raw: Array<Omit<Product, 'createdAt' | 'updatedAt'> & { daysAgo: number }>
   { productId: 'tm-009', name: 'Tacones estampado floral', description: 'Stiletto de punta con estampado floral y tacón de 10 cm.', price: 1590, category: 'Zapatos', stock: 2, imageUrl: img('1543163521-1bf539c55dd2'), daysAgo: 9 },
   { productId: 'tm-010', name: 'Sudadera con capucha gris', description: 'Felpa perchada de algodón, bolsillo canguro y capucha ajustable.', price: 799, category: 'Ropa', stock: 22, imageUrl: img('1556821840-3a63f95609a7'), daysAgo: 10 },
   { productId: 'tm-011', name: 'Reloj minimalista blanco', description: 'Caja de 40 mm, carátula negra y correa de silicona.', price: 1990, category: 'Accesorios', stock: 7, imageUrl: img('1523275335684-37898b6baf30'), daysAgo: 11 },
-  { productId: 'tm-012', name: 'Poncho tejido crochet', description: 'Poncho artesanal de algodón crudo con flecos.', price: 890, category: 'Ropa', stock: 4, imageUrl: img('1618354691373-d851c5c3a990'), daysAgo: 12 },
+  { productId: 'tm-012', name: 'Poncho tejido crochet', description: 'Poncho artesanal de algodón crudo con flecos.', price: 890, category: 'Ropa', stock: 4, imageUrl: img('1434389677669-e08b4cac3105'), daysAgo: 12 },
   { productId: 'tm-013', name: 'Mochila urbana', description: 'Mochila azul marino resistente al agua con compartimento para laptop de 15".', price: 1190, category: 'Accesorios', stock: 14, imageUrl: img('1553062407-98eeb64c6a62'), daysAgo: 13 },
   { productId: 'tm-014', name: 'Tenis blancos de piel', description: 'Silueta clásica de piel blanca con suela de goma.', price: 1490, category: 'Zapatos', stock: 0, imageUrl: img('1608231387042-66d1773070a5'), daysAgo: 14 },
   { productId: 'tm-015', name: 'Jeans slim deslavados', description: 'Mezclilla elástica con rotos y deslavado medio.', price: 990, category: 'Ropa', stock: 11, imageUrl: img('1541099649105-f69ad21f3246'), daysAgo: 15 },

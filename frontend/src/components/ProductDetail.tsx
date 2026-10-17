@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Minus, Plus } from 'lucide-react';
-import { formatPrice, FREE_SHIPPING_FROM, LOW_STOCK, SHIPPING_COST } from '../lib/format';
+import { Minus, Plus, RotateCcw, Truck } from 'lucide-react';
+import { formatPrice, FREE_SHIPPING_FROM, LOW_STOCK } from '../lib/format';
 import type { Product } from '../lib/types';
 import { Modal } from './Modal';
 import { ProductImage } from './ProductImage';
@@ -22,38 +22,41 @@ export function ProductDetail({ product, onClose, onAddToCart }: ProductDetailPr
   return (
     <Modal open onClose={onClose} title={product.name} size="lg" hideTitle>
       <div className="grid md:grid-cols-2">
-        <ProductImage src={product.imageUrl} alt={product.name} className="aspect-[4/5] w-full bg-surface max-md:max-h-[60svh]" />
+        <div className="p-3 md:p-4">
+          <ProductImage src={product.imageUrl} alt={product.name} className="aspect-[4/5] w-full rounded-2xl bg-surface max-md:max-h-[55svh]" />
+        </div>
 
-        <div className="flex flex-col p-6 md:p-14">
-          <p className="eyebrow text-muted">Inicio / {product.category}</p>
-          <h2 className="mt-4 font-display text-[2.5rem] leading-[1] tracking-[-0.01em] text-ink">{product.name}</h2>
-          <p className="mt-4 text-[15px] tabular-nums text-ink">{formatPrice(product.price)}</p>
+        <div className="flex flex-col p-5 md:p-10 md:pl-6">
+          <span className="badge self-start bg-surface text-ink">{product.category}</span>
+          <h2 className="display mt-4 text-[clamp(2.5rem,5vw,3.75rem)] text-ink">{product.name}</h2>
+          <p className="mt-3 text-2xl font-bold tabular-nums text-ink">{formatPrice(product.price)}</p>
 
-          <p className="mt-8 text-[15px] leading-6 text-muted">{product.description || 'Sin descripción.'}</p>
+          <p className="mt-6 text-[15px] leading-6 text-muted">{product.description || 'Sin descripción.'}</p>
 
-          <p className={`mt-6 text-[13px] ${soldOut ? 'text-danger' : product.stock <= LOW_STOCK ? 'text-accent' : 'text-success'}`}>
-            {soldOut ? 'Agotado por ahora' : product.stock <= LOW_STOCK ? `Solo quedan ${product.stock} piezas` : 'Disponible'}
+          <p className="mt-6 flex items-center gap-2 text-[13px] font-semibold">
+            <span className={`h-2.5 w-2.5 rounded-full ${soldOut ? 'bg-danger' : product.stock <= LOW_STOCK ? 'bg-coral' : 'bg-success'}`} aria-hidden="true" />
+            {soldOut ? 'Agotado por ahora' : product.stock <= LOW_STOCK ? `¡Solo quedan ${product.stock}!` : 'Disponible'}
           </p>
 
           {!soldOut && (
             <div className="mt-4 flex gap-3">
-              <div className="flex h-12 items-center border border-ink">
+              <div className="flex h-12 items-center rounded-full border-2 border-ink">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="flex h-full w-11 items-center justify-center disabled:opacity-30"
                   disabled={quantity <= 1}
                   aria-label="Disminuir cantidad"
                 >
-                  <Minus className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-6 text-center text-[13px] tabular-nums" aria-live="polite">{quantity}</span>
+                <span className="w-6 text-center font-semibold tabular-nums" aria-live="polite">{quantity}</span>
                 <button
                   onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                   className="flex h-full w-11 items-center justify-center disabled:opacity-30"
                   disabled={quantity >= product.stock}
                   aria-label="Aumentar cantidad"
                 >
-                  <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <Plus className="h-4 w-4" />
                 </button>
               </div>
               <button
@@ -68,22 +71,14 @@ export function ProductDetail({ product, onClose, onAddToCart }: ProductDetailPr
             </div>
           )}
 
-          <div className="mt-10 divide-y divide-line border-y border-line text-[13px]">
-            <details className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between uppercase tracking-[0.12em]">
-                Composición y cuidados <Plus className="h-3.5 w-3.5 transition-transform group-open:rotate-45" strokeWidth={1.5} />
-              </summary>
-              <p className="mt-3 leading-6 text-muted">Lavar a máquina en frío con colores similares. No usar secadora. Planchar a temperatura baja.</p>
-            </details>
-            <details className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between uppercase tracking-[0.12em]">
-                Envíos y devoluciones <Plus className="h-3.5 w-3.5 transition-transform group-open:rotate-45" strokeWidth={1.5} />
-              </summary>
-              <p className="mt-3 leading-6 text-muted">
-                Envío gratis desde {formatPrice(FREE_SHIPPING_FROM)}; si no, {formatPrice(SHIPPING_COST)}. Devoluciones sin costo durante 30 días.
-              </p>
-            </details>
-          </div>
+          <ul className="mt-8 grid gap-2 text-[13px]">
+            <li className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3">
+              <Truck className="h-4 w-4 shrink-0" /> Envío gratis desde {formatPrice(FREE_SHIPPING_FROM)}
+            </li>
+            <li className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3">
+              <RotateCcw className="h-4 w-4 shrink-0" /> Devoluciones gratis durante 30 días
+            </li>
+          </ul>
         </div>
       </div>
     </Modal>

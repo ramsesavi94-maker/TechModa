@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { AlertCircle, Check } from 'lucide-react';
 
 export interface Toast {
   id: number;
@@ -20,15 +21,16 @@ export function useToasts() {
 
 export function Toasts({ toasts }: { toasts: Toast[] }) {
   return (
-    <div className="pointer-events-none fixed inset-x-4 top-4 z-[60] md:bottom-4 md:top-auto flex flex-col items-center gap-2 md:inset-x-auto md:left-10 md:items-start" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-3 top-3 z-[60] flex flex-col items-center gap-2 md:inset-x-auto md:bottom-6 md:left-6 md:top-auto md:items-start" aria-live="polite">
       {toasts.map((t) => (
         <div
           key={t.id}
           role={t.tone === 'error' ? 'alert' : 'status'}
-          className={`pointer-events-auto flex animate-fade-up items-center gap-3 bg-ink px-5 py-3.5 text-[13px] text-paper ${
-            t.tone === 'error' ? 'border-l-2 border-[#e08a7a]' : ''
-          }`}
+          className="pointer-events-auto flex animate-fade-up items-center gap-3 rounded-full bg-ink py-2 pl-2 pr-5 text-[13px] font-medium text-paper shadow-xl"
         >
+          <span className={`flex h-7 w-7 items-center justify-center rounded-full ${t.tone === 'error' ? 'bg-coral' : 'bg-lime'} text-ink`}>
+            {t.tone === 'error' ? <AlertCircle className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+          </span>
           {t.message}
         </div>
       ))}

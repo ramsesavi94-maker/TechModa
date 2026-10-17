@@ -1,4 +1,4 @@
-import { Search, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 
 interface HeaderProps {
   search: string;
@@ -13,13 +13,13 @@ function SearchField({ value, onChange, className }: { value: string; onChange: 
   return (
     <label className={`relative items-center ${className}`}>
       <span className="sr-only">Buscar productos</span>
-      <Search className="pointer-events-none absolute left-0 h-3.5 w-3.5 text-muted" aria-hidden="true" />
+      <Search className="pointer-events-none absolute left-4 h-4 w-4 text-muted" aria-hidden="true" />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Buscar productos..."
-        className="w-full rounded-none border-0 border-b border-field bg-transparent py-1.5 pl-6 text-[13px] text-ink outline-none transition-colors placeholder:text-muted focus:border-ink focus-visible:outline-none"
+        className="h-10 w-full rounded-full border border-line bg-white pl-10 pr-4 text-[14px] text-ink outline-none transition placeholder:text-muted focus:border-ink focus:ring-2 focus:ring-lime focus-visible:outline-none"
       />
     </label>
   );
@@ -27,37 +27,41 @@ function SearchField({ value, onChange, className }: { value: string; onChange: 
 
 export function Header({ search, onSearch, cartCount, onCartClick, isAdmin, onToggleAdmin }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper">
-      <div className="mx-auto grid h-14 max-w-page grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 md:px-10">
-        <SearchField value={search} onChange={onSearch} className="hidden w-44 transition-[width] duration-300 ease-out-quint focus-within:w-64 md:flex" />
-        <span className="md:hidden" />
-
-        <a href="#" className="font-display text-[22px] font-medium tracking-[0.04em] text-ink md:text-[26px]">
-          TechModa
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-page items-center gap-3 px-3 md:gap-6 md:px-6">
+        <a href="#" className="display shrink-0 text-[28px] tracking-[0.02em] text-ink md:text-[32px]">
+          Tech<span className="rounded-md bg-lime px-1">Moda</span>
         </a>
 
-        <div className="flex items-center justify-end gap-5 text-[13px]">
+        <SearchField value={search} onChange={onSearch} className="ml-auto hidden w-full max-w-sm md:flex" />
+
+        <div className="ml-auto flex items-center gap-2 md:ml-0">
           <button
             onClick={onToggleAdmin}
             aria-pressed={isAdmin}
             aria-label={isAdmin ? 'Salir de admin' : 'Admin'}
-            className={`link-underline ${isAdmin ? 'text-ink after:scale-x-100' : 'text-muted hover:text-ink'}`}
+            className={`flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-semibold uppercase tracking-[0.04em] transition ${
+              isAdmin ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/5'
+            }`}
           >
-            {isAdmin ? 'Salir de admin' : 'Admin'}
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{isAdmin ? 'Salir de admin' : 'Admin'}</span>
           </button>
           <button
             onClick={onCartClick}
-            className="flex items-center gap-1.5 text-ink"
+            className="flex h-10 items-center gap-2 rounded-full bg-ink pl-4 pr-1.5 text-[13px] font-semibold uppercase tracking-[0.04em] text-paper transition hover:-translate-y-0.5"
             aria-label={`Abrir carrito (${cartCount} artículos)`}
           >
-            <ShoppingBag className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+            <ShoppingBag className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Bolsa</span>
-            <span key={cartCount} className="inline-block animate-bump tabular-nums">({cartCount})</span>
+            <span key={cartCount} className="flex h-7 min-w-7 animate-bump items-center justify-center rounded-full bg-lime px-1.5 tabular-nums text-ink">
+              {cartCount}
+            </span>
           </button>
         </div>
       </div>
 
-      <div className="px-4 pb-3 md:hidden">
+      <div className="px-3 pb-3 md:hidden">
         <SearchField value={search} onChange={onSearch} className="flex" />
       </div>
     </header>

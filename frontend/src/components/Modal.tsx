@@ -12,7 +12,7 @@ interface ModalProps {
   hideTitle?: boolean;
 }
 
-const sizes = { sm: 'sm:max-w-md', md: 'sm:max-w-xl', lg: 'md:max-w-6xl' };
+const sizes = { sm: 'sm:max-w-md', md: 'sm:max-w-xl', lg: 'md:max-w-5xl' };
 
 export function Modal({ open, onClose, title, children, variant = 'center', size = 'md', hideTitle }: ModalProps) {
   useEffect(() => {
@@ -31,21 +31,21 @@ export function Modal({ open, onClose, title, children, variant = 'center', size
 
   const panel =
     variant === 'right'
-      ? 'ml-auto h-full w-full max-w-[440px] animate-slide-in border-l border-line'
-      : `w-full ${sizes[size]} h-full sm:m-auto sm:h-auto sm:max-h-[92vh] animate-fade-up`;
+      ? 'ml-auto h-full w-full max-w-[440px] animate-slide-in sm:rounded-l-3xl'
+      : `w-full ${sizes[size]} mt-auto max-h-[92svh] rounded-t-3xl sm:m-auto sm:rounded-3xl animate-fade-up`;
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="absolute inset-0 animate-fade-in bg-black/30" onClick={onClose} aria-hidden="true" />
-      <div role="dialog" aria-modal="true" aria-label={title} className={`relative flex flex-col overflow-hidden bg-paper ${panel}`}>
-        <div className={`flex items-center justify-between px-6 ${hideTitle ? 'absolute right-0 top-0 z-10 pt-3' : 'h-16 border-b border-line'}`}>
-          {!hideTitle && <h2 className="font-display text-[28px] leading-none text-ink">{title}</h2>}
+      <div className="absolute inset-0 animate-fade-in bg-ink/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div role="dialog" aria-modal="true" aria-label={title} className={`relative flex flex-col overflow-hidden bg-paper shadow-2xl ${panel}`}>
+        <div className={`flex items-center justify-between px-6 ${hideTitle ? 'absolute right-0 top-0 z-10 pt-4' : 'h-16 border-b border-line'}`}>
+          {!hideTitle && <h2 className="display text-[28px] text-ink">{title}</h2>}
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            className="-mr-2 flex h-11 w-11 items-center justify-center text-ink transition-opacity hover:opacity-60"
+            className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full bg-paper text-ink transition hover:bg-ink hover:text-paper"
           >
-            <X className="h-5 w-5" strokeWidth={1.5} />
+            <X className="h-5 w-5" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto">{children}</div>
