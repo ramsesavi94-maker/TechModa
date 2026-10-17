@@ -13,6 +13,10 @@ vi.mock('./lib/api', () => ({
     createProduct: vi.fn(),
     updateProduct: vi.fn(),
     deleteProduct: vi.fn(),
+    translateProduct: vi.fn(),
+    speakProduct: vi.fn(),
+    productInsights: vi.fn(),
+    askAssistant: vi.fn(),
   },
 }));
 
@@ -22,6 +26,39 @@ describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.listProducts).mockResolvedValue(mockProducts);
+    vi.mocked(api.productInsights).mockResolvedValue({ features: ['Cómoda'], season: 'Otoño', tip: 'Con tenis', ai: false });
+  });
+
+  it('el asistente recomienda productos del catálogo y permite agregarlos', async () => {
+    vi.mocked(api.askAssistant).mockResolvedValueOnce({ reply: 'Mira esto', productIds: ['test-product-101'], ai: false });
+    render(<App />);
+    await loaded();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir asistente de estilo' }));
+    const chat = screen.getByRole('dialog', { name: 'Vale · tu stylist' });
+    await userEvent.type(within(chat).getByRole('textbox'), 'un regalo{Enter}');
+
+    expect(await within(chat).findByText('Mira esto')).toBeInTheDocument();
+    expect(api.askAssistant).toHaveBeenCalledWith('un regalo', [], 'es', mockProducts);
+    await userEvent.click(within(chat).getByRole('button', { name: 'Agregar Reloj Elegante al carrito' }));
+    expect(screen.getByRole('button', { name: /abrir carrito \(1/i })).toBeInTheDocument();
+  });
+
+  it('el detalle muestra la ficha de estilo', async () => {
+    render(<App />);
+    await loaded();
+    await userEvent.click(screen.getByRole('button', { name: 'Ver detalles de Reloj Elegante' }));
+    expect(await screen.findByText('Con tenis')).toBeInTheDocument();
+    expect(api.productInsights).toHaveBeenCalledWith(expect.objectContaining({ productId: 'test-product-101' }), 'es');
+  });
+
+  it('vacía el carrito', async () => {
+    render(<App />);
+    await loaded();
+    await userEvent.click(screen.getByRole('button', { name: 'Agregar Camisa Blanca Clásica al carrito' }));
+    await userEvent.click(screen.getByRole('button', { name: /abrir carrito \(1/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Vaciar carrito' }));
+    expect(screen.getByText('Tu bolsa está vacía')).toBeInTheDocument();
   });
 
   it('muestra el estado de carga y luego el catálogo', async () => {

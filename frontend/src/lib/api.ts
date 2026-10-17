@@ -1,5 +1,8 @@
+import { localAssistant, type AssistantReply } from './assistant';
 import { demoApi } from './demoStore';
-import type { Product, ProductInput } from './types';
+import type { Lang } from './i18n';
+import { localInsights } from './insights';
+import type { AssistantMessage, Product, ProductInput, ProductInsights, ProductText } from './types';
 
 // Runtime environment configuration (injected at deployment time)
 declare global {
@@ -67,6 +70,69 @@ export const httpApi = {
 
   async deleteProduct(productId: string): Promise<void> {
     await request<unknown>(`/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+  },
+
+  // Amazon Translate vía translate-item; si falla, se muestra el texto original.
+  async translateProduct(product: Product, lang: Exclude<Lang, 'es'>): Promise<ProductText> {
+    // translate-item guarda la fecha del texto original; si cambió, se retraduce.
+    const cached = product.translations?.[lang] as (ProductText & { sourceUpdatedAt?: string }) | undefined;
+    if (cached && (!cached.sourceUpdatedAt || cached.sourceUpdatedAt === product.updatedAt)) return cached;
+    try {
+      const { name, description } = await request<ProductText>(
+        `/products/${encodeURIComponent(product.productId)}/translate`,
+        { method: 'POST', body: JSON.stringify({ language: lang }) },
+      );
+      return { name, description };
+    } catch {
+      return { name: product.name, description: product.description };
+    }
+  },
+
+  // Amazon Polly vía speak-item. null => el componente usa la voz del navegador.
+  async speakProduct(productId: string, lang: Lang): Promise<string | null> {
+    try {
+      const { audioBase64, contentType } = await request<{ audioBase64: string; contentType: string }>(
+        `/products/${encodeURIComponent(productId)}/speech`,
+        { method: 'POST', body: JSON.stringify({ language: lang }) },
+      );
+      return `data:${contentType};base64,${audioBase64}`;
+    } catch {
+      return null;
+    }
+  },
+
+  // Claude en Bedrock vía ai-assistant; con EnableAI=false responde 503 y se usa la guía local.
+  async productInsights(product: Product, lang: Lang): Promise<ProductInsights> {
+    try {
+      const data = await request<Omit<ProductInsights, 'ai'>>(
+        `/products/${encodeURIComponent(product.productId)}/insights`,
+        { method: 'POST', body: JSON.stringify({ language: lang }) },
+      );
+      return { features: data.features, season: data.season, tip: data.tip, ai: true };
+    } catch {
+      return localInsights(product, lang);
+    }
+  },
+
+  async askAssistant(
+    message: string,
+    history: AssistantMessage[],
+    lang: Lang,
+    products: Product[],
+  ): Promise<AssistantReply & { ai: boolean }> {
+    try {
+      const data = await request<AssistantReply>('/assistant', {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          language: lang,
+          history: history.map(({ role, content }) => ({ role, content })),
+        }),
+      });
+      return { ...data, ai: true };
+    } catch {
+      return { ...localAssistant(message, products, lang), ai: false };
+    }
   },
 };
 

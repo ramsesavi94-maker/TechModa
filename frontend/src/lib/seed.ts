@@ -1,3 +1,4 @@
+import { SEED_TRANSLATIONS } from './seedTranslations';
 import type { Product } from './types';
 
 // Fotos de Unsplash (licencia libre) servidas desde su CDN y recortadas a 4:5.
@@ -37,4 +38,5 @@ export const SEED_PRODUCTS: Product[] = raw.map(({ daysAgo, ...p }) => ({
   ...p,
   createdAt: at(daysAgo),
   updatedAt: at(daysAgo),
+  translations: SEED_TRANSLATIONS[p.productId],
 }));

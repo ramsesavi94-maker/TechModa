@@ -1,0 +1,12 @@
+{
+  "name": "ai-assistant",
+  "version": "1.0.0",
+  "description": "Style assistant and product insights with Claude on Amazon Bedrock",
+  "main": "index.mjs",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.35.0",
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}

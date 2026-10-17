@@ -25,7 +25,7 @@ describe('demoApi (modo demo)', () => {
   it('crea, actualiza y elimina persistiendo en localStorage', async () => {
     const created = await run(demoApi.createProduct(mockProductInput));
     expect(created.productId).toBeTruthy();
-    expect(JSON.parse(localStorage.getItem('techmoda.demo.products.v1')!)[0].productId).toBe(created.productId);
+    expect(JSON.parse(localStorage.getItem('techmoda.demo.products.v2')!)[0].productId).toBe(created.productId);
 
     const updated = await run(demoApi.updateProduct(created.productId, { stock: 2 }));
     expect(updated.stock).toBe(2);
