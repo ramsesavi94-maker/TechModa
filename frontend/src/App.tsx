@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { PackageSearch, RotateCcw } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { AdminStats } from './components/AdminStats';
 import { CartDrawer } from './components/CartDrawer';
 import { ConfirmDialog } from './components/ConfirmDialog';
@@ -40,6 +40,7 @@ function App() {
   const [editing, setEditing] = useState<Product | undefined>();
   const [toDelete, setToDelete] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [showDemoBanner, setShowDemoBanner] = useState(true);
   const catalogRef = useRef<HTMLElement>(null);
 
   const visible = useMemo(() => {
@@ -85,11 +86,18 @@ function App() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      {isDemoMode && (
-        <div className="bg-ink px-4 py-2 text-center text-xs text-paper/80">
+      {isDemoMode && showDemoBanner && (
+        <div className="relative bg-surface px-10 py-1.5 text-center text-[11px] tracking-wide text-muted">
           Demo con datos de ejemplo · los cambios se guardan solo en tu navegador ·{' '}
-          <button onClick={handleResetDemo} className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-paper">
-            <RotateCcw className="h-3 w-3" /> Restablecer
+          <button onClick={handleResetDemo} className="text-ink underline underline-offset-2">
+            Restablecer
+          </button>
+          <button
+            onClick={() => setShowDemoBanner(false)}
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-muted hover:text-ink"
+            aria-label="Ocultar aviso de demo"
+          >
+            <X className="h-3.5 w-3.5" strokeWidth={1.5} />
           </button>
         </div>
       )}
@@ -108,7 +116,7 @@ function App() {
 
       {!isAdmin && <Hero onShop={() => catalogRef.current?.scrollIntoView({ behavior: 'smooth' })} />}
 
-      <main ref={catalogRef} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-10 sm:px-6 lg:px-8">
+      <main ref={catalogRef} id="catalogo" className="mx-auto max-w-page scroll-mt-14 px-4 md:px-10">
         {isAdmin && (
           <AdminStats
             products={products}
@@ -119,104 +127,126 @@ function App() {
           />
         )}
 
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            {!isAdmin && <h2 className="mb-4 font-display text-3xl text-ink sm:text-4xl">El catálogo</h2>}
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Categorías">
-              {['Todos', ...CATEGORIES].map((c) => (
-                <button
-                  key={c}
-                  role="tab"
-                  aria-selected={category === c}
-                  onClick={() => setCategory(c)}
-                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition ${
-                    category === c ? 'border-ink bg-ink text-paper' : 'border-line text-ink/70 hover:border-ink/40 hover:text-ink'
-                  }`}
-                >
-                  {c} <span className="ml-1 tabular-nums opacity-50">{countFor(c)}</span>
-                </button>
-              ))}
-            </div>
+        <div className="sticky top-[6.5rem] z-30 -mx-4 flex h-12 items-center justify-between gap-4 border-b border-line bg-paper/95 px-4 backdrop-blur-sm md:top-14 md:-mx-10 md:px-10">
+          <div className="no-scrollbar flex h-full gap-4 overflow-x-auto md:gap-6" role="tablist" aria-label="Categorías">
+            {['Todos', ...CATEGORIES].map((c) => (
+              <button
+                key={c}
+                role="tab"
+                aria-selected={category === c}
+                onClick={() => setCategory(c)}
+                className={`relative shrink-0 text-[12px] uppercase tracking-[0.12em] transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform after:duration-300 after:ease-out-quint ${
+                  category === c ? 'text-ink after:scale-x-100' : 'text-muted after:scale-x-0 hover:text-ink'
+                }`}
+              >
+                {c}
+                <sup className="ml-0.5 text-[10px] tabular-nums">{countFor(c)}</sup>
+              </button>
+            ))}
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-ink/60">
-            Ordenar por
+          <label className="relative flex shrink-0 items-center gap-2 text-[12px] text-muted">
+            <span className="max-sm:sr-only">Ordenar por</span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="rounded-full border border-line bg-transparent px-3 py-1.5 text-ink outline-none focus:border-ink/40"
+              className="cursor-pointer appearance-none bg-transparent pr-5 text-[12px] text-ink outline-none"
             >
               {Object.entries(SORTS).map(([value, { label }]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
+            <ChevronDown className="pointer-events-none absolute right-0 h-3.5 w-3.5 text-ink" strokeWidth={1.5} aria-hidden="true" />
           </label>
         </div>
 
-        {loading ? (
-          <div role="status" aria-label="Cargando productos" className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }, (_, i) => (
-              <div key={i}>
-                <div className="aspect-[4/5] animate-pulse rounded-xl bg-sand" />
-                <div className="mt-3 h-3 w-1/3 animate-pulse rounded bg-sand" />
-                <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-sand" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
-            <p className="font-medium">No pudimos cargar el catálogo.</p>
-            <p className="mt-1 text-sm">{error}</p>
-            <button onClick={refetch} className="btn-secondary mt-4">Reintentar</button>
-          </div>
-        ) : visible.length === 0 ? (
-          <div className="flex flex-col items-center py-20 text-center">
-            <PackageSearch className="h-14 w-14 text-ink/20" />
-            <h3 className="mt-4 font-display text-2xl">No se encontraron productos</h3>
-            <p className="mt-2 text-ink/50">
-              {search || category !== 'Todos' ? 'Intenta ajustar la búsqueda o la categoría.' : 'Agrega productos para comenzar.'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <p className="mb-4 text-sm text-ink/50">{visible.length} {visible.length === 1 ? 'producto' : 'productos'}</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {visible.map((product) => (
-                <ProductCard
-                  key={product.productId}
-                  product={product}
-                  isAdmin={isAdmin}
-                  onOpen={setDetail}
-                  onAddToCart={addToCart}
-                  onEdit={(p) => {
-                    setEditing(p);
-                    setFormOpen(true);
-                  }}
-                  onDelete={setToDelete}
-                />
+        <div className="py-10 md:py-14">
+          {loading ? (
+            <div role="status" aria-label="Cargando productos" className="grid grid-cols-2 gap-x-3 gap-y-12 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div key={i}>
+                  <div className="aspect-[4/5] animate-pulse bg-surface" />
+                  <div className="mt-3 h-3 w-2/3 animate-pulse bg-surface" />
+                  <div className="mt-2 h-3 w-1/4 animate-pulse bg-surface" />
+                </div>
               ))}
             </div>
-          </>
-        )}
+          ) : error ? (
+            <div role="alert" className="border-l-2 border-danger py-2 pl-5">
+              <p className="font-display text-2xl text-ink">No pudimos cargar el catálogo.</p>
+              <p className="mt-1 text-[13px] text-muted">{error}</p>
+              <button onClick={refetch} className="btn-secondary mt-6">Reintentar</button>
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="flex flex-col items-center py-20 text-center">
+              <h3 className="font-display text-3xl">No se encontraron productos</h3>
+              <p className="mt-3 text-[15px] text-muted">
+                {search || category !== 'Todos' ? 'Intenta ajustar la búsqueda o la categoría.' : 'Agrega productos para comenzar.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <p className="eyebrow mb-6 text-muted">{visible.length} {visible.length === 1 ? 'pieza' : 'piezas'}</p>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-12 md:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+                {visible.map((product, i) => (
+                  <ProductCard
+                    key={product.productId}
+                    product={product}
+                    isAdmin={isAdmin}
+                    style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
+                    onOpen={setDetail}
+                    onAddToCart={addToCart}
+                    onEdit={(p) => {
+                      setEditing(p);
+                      setFormOpen(true);
+                    }}
+                    onDelete={setToDelete}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </main>
 
-      <footer className="mt-16 border-t border-line">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 text-sm text-ink/60 sm:px-6 md:flex-row md:justify-between lg:px-8">
+      <footer className="mt-16 overflow-hidden bg-ink text-paper/70">
+        <div className="mx-auto grid max-w-page grid-cols-2 gap-10 px-4 pb-10 pt-16 text-[13px] md:grid-cols-4 md:px-10">
           <div>
-            <p className="font-display text-xl text-ink">Tech<span className="italic text-accent">Moda</span></p>
-            <p className="mt-2 max-w-sm">
-              Proyecto de portafolio: e-commerce de moda sobre una API REST serverless en AWS.
-            </p>
+            <p className="eyebrow text-paper">Tienda</p>
+            <ul className="mt-4 space-y-2">
+              {CATEGORIES.map((c) => <li key={c}>{c}</li>)}
+            </ul>
           </div>
           <div>
-            <p className="font-medium text-ink">Arquitectura</p>
-            <p className="mt-2">API Gateway · Lambda (Node.js 22) · DynamoDB</p>
-            <p>S3 + CloudFront · X-Ray · CloudWatch · AWS SAM</p>
-            <a href={REPO_URL} className="mt-2 inline-block text-ink underline underline-offset-4 hover:text-accent">
-              Ver código en GitHub
-            </a>
+            <p className="eyebrow text-paper">Ayuda</p>
+            <ul className="mt-4 space-y-2">
+              <li>Envíos</li>
+              <li>Devoluciones</li>
+              <li>Guía de tallas</li>
+            </ul>
+          </div>
+          <div>
+            <p className="eyebrow text-paper">Proyecto</p>
+            <p className="mt-4 leading-6">E-commerce de moda sobre una API REST serverless en AWS: API Gateway, Lambda y DynamoDB.</p>
+            <a href={REPO_URL} className="link-underline mt-3 inline-block text-paper">Ver código en GitHub</a>
+          </div>
+          <div className="col-span-2 md:col-span-1">
+            <p className="eyebrow text-paper">Newsletter</p>
+            <p className="mt-4">Novedades y lanzamientos, una vez al mes.</p>
+            <label className="mt-4 flex items-center border-b border-paper/40 focus-within:border-paper">
+              <span className="sr-only">Correo electrónico</span>
+              <input type="email" placeholder="tu@correo.com" className="w-full bg-transparent py-2 text-paper outline-none placeholder:text-paper/50 focus-visible:outline-none" />
+              <span className="text-paper" aria-hidden="true">→</span>
+            </label>
           </div>
         </div>
+        <p className="mx-auto max-w-page px-4 text-[11px] text-paper/60 md:px-10">Proyecto de portafolio · © 2026 TechModa</p>
+        <p
+          className="mt-4 translate-y-[8%] select-none text-center font-display text-[18vw] leading-[0.75] tracking-[-0.03em] text-paper"
+          aria-hidden="true"
+        >
+          TechModa
+        </p>
       </footer>
 
       <ProductDetail product={detail} onClose={() => setDetail(null)} onAddToCart={addToCart} />

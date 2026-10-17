@@ -13,7 +13,7 @@ export function ProductImage({ src, alt, className = '' }: ProductImageProps) {
 
   if (!src || failed) {
     return (
-      <div className={`flex items-center justify-center bg-sand text-ink/30 ${className}`} role="img" aria-label={alt}>
+      <div className={`flex items-center justify-center bg-surface text-muted ${className}`} role="img" aria-label={alt}>
         <ImageOff className="h-10 w-10" />
       </div>
     );

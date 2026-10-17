@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export interface Toast {
   id: number;
@@ -21,14 +20,15 @@ export function useToasts() {
 
 export function Toasts({ toasts }: { toasts: Toast[] }) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-4 top-4 z-[60] md:bottom-4 md:top-auto flex flex-col items-center gap-2 md:inset-x-auto md:left-10 md:items-start" aria-live="polite">
       {toasts.map((t) => (
         <div
           key={t.id}
           role={t.tone === 'error' ? 'alert' : 'status'}
-          className="pointer-events-auto flex animate-pop-in items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm text-paper shadow-xl"
+          className={`pointer-events-auto flex animate-fade-up items-center gap-3 bg-ink px-5 py-3.5 text-[13px] text-paper ${
+            t.tone === 'error' ? 'border-l-2 border-[#e08a7a]' : ''
+          }`}
         >
-          {t.tone === 'error' ? <AlertCircle className="h-4 w-4 text-red-400" /> : <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
           {t.message}
         </div>
       ))}

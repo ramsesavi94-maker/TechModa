@@ -21,21 +21,21 @@ export function AdminStats({ products, onCreate }: AdminStatsProps) {
   ];
 
   return (
-    <section aria-label="Resumen de inventario" className="mb-8 animate-fade-up rounded-2xl border border-line bg-white/60 p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section aria-label="Resumen de inventario" className="animate-fade-up py-10 md:py-14">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl text-ink">Panel de administración</h2>
-          <p className="text-sm text-ink/50">Crea, edita y elimina productos del catálogo.</p>
+          <p className="eyebrow text-muted">Modo administrador</p>
+          <h2 className="mt-2 font-display text-[2.5rem] leading-none text-ink md:text-5xl">Panel de administración</h2>
         </div>
         <button onClick={onCreate} className="btn-primary">
-          <Plus className="h-4 w-4" /> Nuevo producto
+          <Plus className="h-4 w-4" strokeWidth={1.5} /> Nuevo producto
         </button>
       </div>
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-xl bg-sand/70 px-4 py-3">
-            <dt className="text-xs text-ink/50">{s.label}</dt>
-            <dd className="mt-1 text-xl font-medium tabular-nums text-ink">{s.value}</dd>
+      <dl className="grid grid-cols-2 border-y border-line lg:grid-cols-4">
+        {stats.map((s, i) => (
+          <div key={s.label} className={`px-4 py-5 md:px-6 ${i % 2 ? 'border-l border-line' : ''} ${i === 2 ? 'max-lg:border-t lg:border-l' : ''} ${i === 3 ? 'max-lg:border-t' : ''}`}>
+            <dt className="eyebrow text-muted">{s.label}</dt>
+            <dd className="mt-2 font-display text-[2rem] leading-none tabular-nums text-ink">{s.value}</dd>
           </div>
         ))}
       </dl>

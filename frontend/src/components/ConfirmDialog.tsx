@@ -12,11 +12,11 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({ open, title, message, confirmLabel, onConfirm, onCancel }: ConfirmDialogProps) {
   return (
     <Modal open={open} onClose={onCancel} title={title} size="sm">
-      <div className="space-y-6 p-6">
-        <p className="text-ink/70">{message}</p>
+      <div className="space-y-8 p-6">
+        <p className="text-[15px] leading-6 text-muted">{message}</p>
         <div className="flex gap-3">
           <button onClick={onCancel} className="btn-secondary flex-1">Cancelar</button>
-          <button onClick={onConfirm} className="btn-primary flex-1 !bg-red-600 hover:!bg-red-700">{confirmLabel}</button>
+          <button onClick={onConfirm} className="btn-primary flex-1 !bg-danger hover:!bg-danger/90">{confirmLabel}</button>
         </div>
       </div>
     </Modal>

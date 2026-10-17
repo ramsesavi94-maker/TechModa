@@ -71,15 +71,15 @@ export function ProductForm({ open, product, onClose, onSave }: ProductFormProps
 
   const field = (name: keyof FormState, label: string, input: JSX.Element) => (
     <div>
-      <label htmlFor={`f-${name}`} className="mb-1.5 block text-sm font-medium text-ink/80">{label}</label>
+      <label htmlFor={`f-${name}`} className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.12em] text-muted">{label}</label>
       {input}
-      {errors[name] && <p className="mt-1 text-xs text-red-600">{errors[name]}</p>}
+      {errors[name] && <p className="mt-1 text-[12px] text-danger">{errors[name]}</p>}
     </div>
   );
 
   return (
     <Modal open={open} onClose={onClose} title={product ? 'Editar producto' : 'Nuevo producto'}>
-      <form onSubmit={handleSubmit} noValidate className="grid gap-5 p-6 sm:grid-cols-[1fr_9rem]">
+      <form onSubmit={handleSubmit} noValidate className="grid gap-6 p-6 md:p-8 sm:grid-cols-[1fr_9rem]">
         <div className="space-y-4">
           {field('name', 'Nombre', <input id="f-name" value={form.name} onChange={set('name')} className="input" />)}
           {field(
@@ -102,8 +102,8 @@ export function ProductForm({ open, product, onClose, onSave }: ProductFormProps
         </div>
 
         <div className="hidden sm:block">
-          <p className="mb-1.5 text-sm font-medium text-ink/80">Vista previa</p>
-          <ProductImage src={form.imageUrl} alt="Vista previa" className="aspect-[4/5] w-full rounded-lg" />
+          <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted">Vista previa</p>
+          <ProductImage src={form.imageUrl} alt="Vista previa" className="aspect-[4/5] w-full" />
         </div>
 
         <div className="flex gap-3 sm:col-span-2">

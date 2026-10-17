@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Minus, Plus, ShoppingBag, Truck } from 'lucide-react';
-import { formatPrice, FREE_SHIPPING_FROM, LOW_STOCK } from '../lib/format';
+import { Minus, Plus } from 'lucide-react';
+import { formatPrice, FREE_SHIPPING_FROM, LOW_STOCK, SHIPPING_COST } from '../lib/format';
 import type { Product } from '../lib/types';
 import { Modal } from './Modal';
 import { ProductImage } from './ProductImage';
@@ -22,43 +22,38 @@ export function ProductDetail({ product, onClose, onAddToCart }: ProductDetailPr
   return (
     <Modal open onClose={onClose} title={product.name} size="lg" hideTitle>
       <div className="grid md:grid-cols-2">
-        <ProductImage src={product.imageUrl} alt={product.name} className="aspect-[4/3] w-full md:aspect-auto md:h-full md:min-h-[32rem]" />
-        <div className="flex flex-col gap-6 p-6 md:p-10">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink/50">{product.category}</p>
-            <h2 className="mt-2 font-display text-3xl leading-tight text-ink md:text-4xl">{product.name}</h2>
-            <p className="mt-3 text-2xl tabular-nums text-ink">{formatPrice(product.price)}</p>
-          </div>
+        <ProductImage src={product.imageUrl} alt={product.name} className="aspect-[4/5] w-full bg-surface max-md:max-h-[60svh]" />
 
-          <p className="leading-relaxed text-ink/70">{product.description || 'Sin descripción.'}</p>
+        <div className="flex flex-col p-6 md:p-14">
+          <p className="eyebrow text-muted">Inicio / {product.category}</p>
+          <h2 className="mt-4 font-display text-[2.5rem] leading-[1] tracking-[-0.01em] text-ink">{product.name}</h2>
+          <p className="mt-4 text-[15px] tabular-nums text-ink">{formatPrice(product.price)}</p>
 
-          <p className={`text-sm ${soldOut ? 'text-red-600' : product.stock <= LOW_STOCK ? 'text-accent' : 'text-emerald-700'}`}>
-            {soldOut
-              ? 'Agotado por ahora'
-              : product.stock <= LOW_STOCK
-                ? `¡Solo quedan ${product.stock}!`
-                : 'Disponible'}
+          <p className="mt-8 text-[15px] leading-6 text-muted">{product.description || 'Sin descripción.'}</p>
+
+          <p className={`mt-6 text-[13px] ${soldOut ? 'text-danger' : product.stock <= LOW_STOCK ? 'text-accent' : 'text-success'}`}>
+            {soldOut ? 'Agotado por ahora' : product.stock <= LOW_STOCK ? `Solo quedan ${product.stock} piezas` : 'Disponible'}
           </p>
 
           {!soldOut && (
-            <div className="flex gap-3">
-              <div className="flex items-center rounded-full border border-line">
+            <div className="mt-4 flex gap-3">
+              <div className="flex h-12 items-center border border-ink">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="p-3 text-ink/70 hover:text-ink disabled:opacity-30"
+                  className="flex h-full w-11 items-center justify-center disabled:opacity-30"
                   disabled={quantity <= 1}
                   aria-label="Disminuir cantidad"
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </button>
-                <span className="w-8 text-center tabular-nums" aria-live="polite">{quantity}</span>
+                <span className="w-6 text-center text-[13px] tabular-nums" aria-live="polite">{quantity}</span>
                 <button
                   onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-                  className="p-3 text-ink/70 hover:text-ink disabled:opacity-30"
+                  className="flex h-full w-11 items-center justify-center disabled:opacity-30"
                   disabled={quantity >= product.stock}
                   aria-label="Aumentar cantidad"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </button>
               </div>
               <button
@@ -68,14 +63,26 @@ export function ProductDetail({ product, onClose, onAddToCart }: ProductDetailPr
                 }}
                 className="btn-primary flex-1"
               >
-                <ShoppingBag className="h-4 w-4" /> Agregar al carrito
+                Agregar a la bolsa
               </button>
             </div>
           )}
 
-          <div className="mt-auto flex items-center gap-3 rounded-xl bg-sand px-4 py-3 text-sm text-ink/70">
-            <Truck className="h-5 w-5 shrink-0" />
-            Envío gratis en pedidos desde {formatPrice(FREE_SHIPPING_FROM)}
+          <div className="mt-10 divide-y divide-line border-y border-line text-[13px]">
+            <details className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between uppercase tracking-[0.12em]">
+                Composición y cuidados <Plus className="h-3.5 w-3.5 transition-transform group-open:rotate-45" strokeWidth={1.5} />
+              </summary>
+              <p className="mt-3 leading-6 text-muted">Lavar a máquina en frío con colores similares. No usar secadora. Planchar a temperatura baja.</p>
+            </details>
+            <details className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between uppercase tracking-[0.12em]">
+                Envíos y devoluciones <Plus className="h-3.5 w-3.5 transition-transform group-open:rotate-45" strokeWidth={1.5} />
+              </summary>
+              <p className="mt-3 leading-6 text-muted">
+                Envío gratis desde {formatPrice(FREE_SHIPPING_FROM)}; si no, {formatPrice(SHIPPING_COST)}. Devoluciones sin costo durante 30 días.
+              </p>
+            </details>
           </div>
         </div>
       </div>
