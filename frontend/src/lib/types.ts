@@ -1,23 +1,22 @@
+// Contrato de la API (ver docs/specs): los campos van en camelCase,
+// igual que los guardan las funciones Lambda en DynamoDB.
 export interface Product {
-  product_id: string;
+  productId: string;
   name: string;
   description: string;
   price: number;
   category: string;
   stock: number;
-  image_url: string;
-  created_at?: string;
-  updated_at?: string;
+  imageUrl: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export type Database = {
-  public: {
-    Tables: {
-      products: {
-        Row: Product;
-        Insert: Omit<Product, 'product_id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Product, 'product_id' | 'created_at' | 'updated_at'>>;
-      };
-    };
-  };
-};
+export type ProductInput = Omit<Product, 'productId' | 'createdAt' | 'updatedAt'>;
+
+export const CATEGORIES = ['Ropa', 'Zapatos', 'Accesorios'] as const;
+
+export interface CartLine {
+  product: Product;
+  quantity: number;
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.aws-sam/
+samconfig.toml
+.env
+.env.*
+!.env.example
+*.log

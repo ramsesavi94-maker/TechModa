@@ -1,73 +1,77 @@
-import { ShoppingCart, Package } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { formatPrice, LOW_STOCK } from '../lib/format';
 import type { Product } from '../lib/types';
+import { ProductImage } from './ProductImage';
 
 interface ProductCardProps {
   product: Product;
-  onEdit?: (product: Product) => void;
-  onDelete?: (productId: string) => void;
   isAdmin?: boolean;
+  onOpen?: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
 }
 
-export function ProductCard({ product, onEdit, onDelete, isAdmin }: ProductCardProps) {
+export function ProductCard({ product, isAdmin, onOpen, onAddToCart, onEdit, onDelete }: ProductCardProps) {
+  const soldOut = product.stock === 0;
+  const lowStock = !soldOut && product.stock <= LOW_STOCK;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
-      <div className="aspect-square overflow-hidden bg-gray-100">
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-            {product.name}
-          </h3>
-          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
-            {product.category}
-          </span>
+    <article className="group flex flex-col" data-testid="product-card">
+      <div className="relative overflow-hidden rounded-xl bg-sand">
+        <button
+          onClick={() => onOpen?.(product)}
+          className="block w-full"
+          aria-label={`Ver detalles de ${product.name}`}
+        >
+          <ProductImage
+            src={product.imageUrl}
+            alt={product.name}
+            className={`aspect-[4/5] w-full transition duration-700 ease-out group-hover:scale-105 ${soldOut ? 'opacity-60 grayscale' : ''}`}
+          />
+        </button>
+
+        <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5">
+          {soldOut && <span className="badge bg-ink text-paper">Agotado</span>}
+          {lowStock && <span className="badge bg-accent text-paper">Últimas {product.stock}</span>}
         </div>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {product.description}
-        </p>
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-bold text-gray-900">
-            ${product.price.toFixed(2)}
-          </span>
-          <div className="flex items-center gap-1 text-sm text-gray-500">
-            <Package className="w-4 h-4" />
-            <span>{product.stock} disponibles</span>
-          </div>
-        </div>
+
         {isAdmin ? (
-          <div className="flex gap-2">
-            <button
-              onClick={() => onEdit?.(product)}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Editar
+          <div className="absolute right-3 top-3 flex gap-2">
+            <button onClick={() => onEdit?.(product)} className="icon-btn" aria-label={`Editar ${product.name}`}>
+              <Pencil className="h-4 w-4" />
             </button>
             <button
-              onClick={() => onDelete?.(product.product_id)}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              onClick={() => onDelete?.(product)}
+              className="icon-btn hover:!bg-red-600 hover:!text-white"
+              aria-label={`Eliminar ${product.name}`}
             >
-              Eliminar
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         ) : (
-          <button
-            disabled={product.stock === 0}
-            className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              product.stock === 0
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            <ShoppingCart className="w-4 h-4" />
-            {product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}
-          </button>
+          !soldOut && (
+            <button
+              onClick={() => onAddToCart?.(product)}
+              className="absolute inset-x-3 bottom-3 flex items-center justify-center gap-2 rounded-full bg-paper/95 py-2.5 text-sm font-medium text-ink shadow-lg backdrop-blur transition duration-300 hover:bg-ink hover:text-paper md:translate-y-2 md:opacity-0 md:focus-visible:translate-y-0 md:focus-visible:opacity-100 md:group-hover:translate-y-0 md:group-hover:opacity-100"
+              aria-label={`Agregar ${product.name} al carrito`}
+            >
+              <Plus className="h-4 w-4" /> Agregar
+            </button>
+          )
         )}
       </div>
-    </div>
+
+      <div className="mt-3 px-0.5">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/50">{product.category || 'Sin categoría'}</p>
+        <h3 className="mt-0.5 line-clamp-2 font-medium leading-snug text-ink">{product.name}</h3>
+        <p className="mt-1 text-ink/80 tabular-nums">{formatPrice(product.price)}</p>
+        {isAdmin && (
+          <p className={`mt-0.5 text-xs ${soldOut ? 'text-red-600' : 'text-ink/50'}`}>
+            {product.stock} en inventario
+          </p>
+        )}
+      </div>
+    </article>
   );
 }

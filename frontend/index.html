@@ -1,15 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TechModa Product Catalog API</title>
+    <meta name="description" content="TechModa: e-commerce de moda sobre una API REST serverless en AWS (API Gateway, Lambda y DynamoDB)." />
+    <meta name="theme-color" content="#faf7f2" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231c1917'/><text x='16' y='23' font-family='Georgia,serif' font-size='20' font-style='italic' text-anchor='middle' fill='%23faf7f2'>T</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <title>TechModa · Moda que se mueve contigo</title>
   </head>
   <body>
     <div id="root"></div>
-    <!-- Runtime environment configuration - injected at deployment time -->
-    <script src="/env-config.js"></script>
+    <!-- Configuración de runtime (scripts/inject-env.sh la genera al desplegar en AWS).
+         Ruta relativa para que funcione tanto en CloudFront (/) como en GitHub Pages (/TechModa/). -->
+    <script src="env-config.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

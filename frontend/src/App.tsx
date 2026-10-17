@@ -1,175 +1,246 @@
-import { useState } from 'react';
-import { Store, Settings, Search, Plus, Loader2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { PackageSearch, RotateCcw } from 'lucide-react';
+import { AdminStats } from './components/AdminStats';
+import { CartDrawer } from './components/CartDrawer';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { Header } from './components/Header';
+import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
-import { ProductModal } from './components/ProductModal';
+import { ProductDetail } from './components/ProductDetail';
+import { ProductForm } from './components/ProductForm';
+import { Toasts, useToasts } from './components/Toasts';
+import { useCart } from './hooks/useCart';
 import { useProducts } from './hooks/useProducts';
-import type { Product } from './lib/types';
+import { isDemoMode } from './lib/api';
+import { resetDemoData } from './lib/demoStore';
+import { CATEGORIES, type Product, type ProductInput } from './lib/types';
+
+type Sort = 'recent' | 'price-asc' | 'price-desc' | 'name';
+
+const SORTS: Record<Sort, { label: string; compare: (a: Product, b: Product) => number }> = {
+  recent: { label: 'Novedades', compare: (a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '') },
+  'price-asc': { label: 'Precio: menor a mayor', compare: (a, b) => a.price - b.price },
+  'price-desc': { label: 'Precio: mayor a menor', compare: (a, b) => b.price - a.price },
+  name: { label: 'Nombre (A–Z)', compare: (a, b) => a.name.localeCompare(b.name, 'es') },
+};
+
+const REPO_URL = 'https://github.com/ramsesavi94-maker/TechModa';
 
 function App() {
+  const { products, loading, error, createProduct, updateProduct, deleteProduct, refetch } = useProducts();
+  const cart = useCart(products);
+  const { toasts, notify } = useToasts();
+
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('Todos');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Todos');
+  const [sort, setSort] = useState<Sort>('recent');
+  const [detail, setDetail] = useState<Product | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Product | undefined>();
+  const [toDelete, setToDelete] = useState<Product | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const catalogRef = useRef<HTMLElement>(null);
 
-  const { products, loading, error, createProduct, updateProduct, deleteProduct } = useProducts();
+  const visible = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return products
+      .filter((p) => category === 'Todos' || p.category === category)
+      .filter((p) => !term || p.name.toLowerCase().includes(term) || p.description.toLowerCase().includes(term))
+      .sort(SORTS[sort].compare);
+  }, [products, search, category, sort]);
 
-  const handleSaveProduct = async (productData: Omit<Product, 'product_id' | 'created_at' | 'updated_at'>) => {
-    if (editingProduct) {
-      const result = await updateProduct(editingProduct.product_id, productData);
-      if (result.success) {
-        setEditingProduct(undefined);
-      } else {
-        alert(result.error);
-      }
-    } else {
-      const result = await createProduct(productData);
-      if (!result.success) {
-        alert(result.error);
-      }
-    }
+  const countFor = (c: string) => (c === 'Todos' ? products.length : products.filter((p) => p.category === c).length);
+
+  const addToCart = (product: Product, quantity = 1) => {
+    cart.add(product, quantity);
+    notify(`${product.name} agregado al carrito`);
   };
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
+  const handleSave = async (input: ProductInput) => {
+    const result = editing ? await updateProduct(editing.productId, input) : await createProduct(input);
+    if (result.success) notify(editing ? 'Producto actualizado' : 'Producto creado');
+    else notify(result.error, 'error');
+    return result.success;
   };
 
-  const handleDelete = async (productId: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      const result = await deleteProduct(productId);
-      if (!result.success) {
-        alert(result.error);
-      }
-    }
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    const result = await deleteProduct(toDelete.productId);
+    notify(result.success ? 'Producto eliminado' : result.error, result.success ? 'success' : 'error');
+    setToDelete(null);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingProduct(undefined);
+  const handleCheckout = () => {
+    cart.clear();
+    setCartOpen(false);
+    notify('¡Pedido simulado con éxito! Gracias por probar la demo.');
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'Todos' || product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const handleResetDemo = async () => {
+    resetDemoData();
+    await refetch();
+    notify('Catálogo de ejemplo restablecido');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Store className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">TechModa</h1>
-                <p className="text-sm text-gray-500">Catálogo de Productos</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsAdmin(!isAdmin)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                isAdmin
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              {isAdmin ? 'Modo Admin' : 'Modo Cliente'}
-            </button>
-          </div>
+    <div className="min-h-screen bg-paper text-ink">
+      {isDemoMode && (
+        <div className="bg-ink px-4 py-2 text-center text-xs text-paper/80">
+          Demo con datos de ejemplo · los cambios se guardan solo en tu navegador ·{' '}
+          <button onClick={handleResetDemo} className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-paper">
+            <RotateCcw className="h-3 w-3" /> Restablecer
+          </button>
         </div>
-      </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+      <Header
+        search={search}
+        onSearch={setSearch}
+        cartCount={cart.count}
+        onCartClick={() => setCartOpen(true)}
+        isAdmin={isAdmin}
+        onToggleAdmin={() => {
+          setIsAdmin((v) => !v);
+          window.scrollTo({ top: 0 });
+        }}
+      />
+
+      {!isAdmin && <Hero onShop={() => catalogRef.current?.scrollIntoView({ behavior: 'smooth' })} />}
+
+      <main ref={catalogRef} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-10 sm:px-6 lg:px-8">
+        {isAdmin && (
+          <AdminStats
+            products={products}
+            onCreate={() => {
+              setEditing(undefined);
+              setFormOpen(true);
+            }}
+          />
+        )}
+
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            {!isAdmin && <h2 className="mb-4 font-display text-3xl text-ink sm:text-4xl">El catálogo</h2>}
+            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Categorías">
+              {['Todos', ...CATEGORIES].map((c) => (
+                <button
+                  key={c}
+                  role="tab"
+                  aria-selected={category === c}
+                  onClick={() => setCategory(c)}
+                  className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition ${
+                    category === c ? 'border-ink bg-ink text-paper' : 'border-line text-ink/70 hover:border-ink/40 hover:text-ink'
+                  }`}
+                >
+                  {c} <span className="ml-1 tabular-nums opacity-50">{countFor(c)}</span>
+                </button>
+              ))}
             </div>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            >
-              <option value="Todos">Todas las Categorías</option>
-              <option value="Ropa">Ropa</option>
-              <option value="Zapatos">Zapatos</option>
-              <option value="Accesorios">Accesorios</option>
-            </select>
           </div>
 
-          {isAdmin && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md"
+          <label className="flex items-center gap-2 text-sm text-ink/60">
+            Ordenar por
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as Sort)}
+              className="rounded-full border border-line bg-transparent px-3 py-1.5 text-ink outline-none focus:border-ink/40"
             >
-              <Plus className="w-5 h-5" />
-              Agregar Nuevo Producto
-            </button>
-          )}
+              {Object.entries(SORTS).map(([value, { label }]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <div role="status" aria-label="Cargando productos" className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={i}>
+                <div className="aspect-[4/5] animate-pulse rounded-xl bg-sand" />
+                <div className="mt-3 h-3 w-1/3 animate-pulse rounded bg-sand" />
+                <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-sand" />
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            Error: {error}
+          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+            <p className="font-medium">No pudimos cargar el catálogo.</p>
+            <p className="mt-1 text-sm">{error}</p>
+            <button onClick={refetch} className="btn-secondary mt-4">Reintentar</button>
           </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
-            <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              No se encontraron productos
-            </h3>
-            <p className="text-gray-500">
-              {searchTerm || categoryFilter !== 'Todos'
-                ? 'Intenta ajustar los filtros de búsqueda'
-                : 'Agrega productos para comenzar'}
+        ) : visible.length === 0 ? (
+          <div className="flex flex-col items-center py-20 text-center">
+            <PackageSearch className="h-14 w-14 text-ink/20" />
+            <h3 className="mt-4 font-display text-2xl">No se encontraron productos</h3>
+            <p className="mt-2 text-ink/50">
+              {search || category !== 'Todos' ? 'Intenta ajustar la búsqueda o la categoría.' : 'Agrega productos para comenzar.'}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.product_id}
-                product={product}
-                isAdmin={isAdmin}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
+          <>
+            <p className="mb-4 text-sm text-ink/50">{visible.length} {visible.length === 1 ? 'producto' : 'productos'}</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+              {visible.map((product) => (
+                <ProductCard
+                  key={product.productId}
+                  product={product}
+                  isAdmin={isAdmin}
+                  onOpen={setDetail}
+                  onAddToCart={addToCart}
+                  onEdit={(p) => {
+                    setEditing(p);
+                    setFormOpen(true);
+                  }}
+                  onDelete={setToDelete}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
 
-      <ProductModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSave={handleSaveProduct}
-        product={editingProduct}
-      />
-
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-gray-500 text-sm">
-            TechModa © 2024 - E-commerce de Moda Serverless
-          </p>
+      <footer className="mt-16 border-t border-line">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 text-sm text-ink/60 sm:px-6 md:flex-row md:justify-between lg:px-8">
+          <div>
+            <p className="font-display text-xl text-ink">Tech<span className="italic text-accent">Moda</span></p>
+            <p className="mt-2 max-w-sm">
+              Proyecto de portafolio: e-commerce de moda sobre una API REST serverless en AWS.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Arquitectura</p>
+            <p className="mt-2">API Gateway · Lambda (Node.js 22) · DynamoDB</p>
+            <p>S3 + CloudFront · X-Ray · CloudWatch · AWS SAM</p>
+            <a href={REPO_URL} className="mt-2 inline-block text-ink underline underline-offset-4 hover:text-accent">
+              Ver código en GitHub
+            </a>
+          </div>
         </div>
       </footer>
+
+      <ProductDetail product={detail} onClose={() => setDetail(null)} onAddToCart={addToCart} />
+      <ProductForm open={formOpen} product={editing} onClose={() => setFormOpen(false)} onSave={handleSave} />
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Eliminar producto"
+        message={`¿Seguro que quieres eliminar "${toDelete?.name ?? ''}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        onConfirm={confirmDelete}
+        onCancel={() => setToDelete(null)}
+      />
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        lines={cart.lines}
+        subtotal={cart.subtotal}
+        shipping={cart.shipping}
+        total={cart.total}
+        onQuantity={cart.setQuantity}
+        onRemove={cart.remove}
+        onCheckout={handleCheckout}
+      />
+      <Toasts toasts={toasts} />
     </div>
   );
 }

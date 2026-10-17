@@ -4,8 +4,8 @@ Description: TechModa Serverless Capstone - Fashion E-commerce Product Catalog A
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 1024
-    Runtime: nodejs18.x
+    MemorySize: 256
+    Runtime: nodejs22.x
     Tracing: Active
     Environment:
       Variables:

@@ -35,7 +35,39 @@ exports.handler = async (event) => {
         }
 
         // Parse request body
-        const body = JSON.parse(event.body);
+        let body;
+        try {
+            body = JSON.parse(event.body || '{}');
+        } catch {
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    error: 'JSON inválido',
+                    message: 'El cuerpo de la solicitud no es JSON válido'
+                })
+            };
+        }
+
+        const price = body.price === undefined ? undefined : parseFloat(body.price);
+        const stock = body.stock === undefined ? undefined : parseInt(body.stock, 10);
+        if ((price !== undefined && (Number.isNaN(price) || price < 0)) ||
+            (stock !== undefined && (Number.isNaN(stock) || stock < 0))) {
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    error: 'Valores inválidos',
+                    message: '"price" y "stock" deben ser números no negativos'
+                })
+            };
+        }
 
         // Check if product exists
         const getCommand = new GetCommand({
@@ -77,10 +109,15 @@ exports.handler = async (event) => {
             expressionAttributeValues[':description'] = body.description;
         }
 
-        if (body.price !== undefined) {
+        if (price !== undefined) {
             updateExpressions.push('#price = :price');
             expressionAttributeNames['#price'] = 'price';
-            expressionAttributeValues[':price'] = parseFloat(body.price);
+            expressionAttributeValues[':price'] = price;
+        }
+        if (stock !== undefined) {
+            updateExpressions.push('#stock = :stock');
+            expressionAttributeNames['#stock'] = 'stock';
+            expressionAttributeValues[':stock'] = stock;
         }
 
         if (body.category !== undefined) {
